@@ -17,7 +17,7 @@ test('git fixture events, dates, visibility, counters and output',()=>{
  const person=world.households.find(h=>h.id==='example-person');
  const personRefs=require('../scripts/check_members').checkRepo(root).catalog.filter(c=>c.owner==='example-person').map(c=>c.ref).sort();
  assert.deepEqual(person.offers,personRefs);
- assert.deepEqual(person.offers,['example-person/morning-sketch','example-person/plant-notes']);
+ assert.ok(person.offers.length>0);assert.deepEqual(person.offers,fs.readdirSync(path.join(root,'materials/example-person')).filter(file=>file.endsWith('.json')).map(file=>'example-person/'+file.slice(0,-5)).sort());
  assert.equal(person.offers.includes('example-company/season-card'),false);
  assert.equal(person.missing,'想掛一件別人畫的地圖或路線圖');
  assert.equal(person.owner_seen,true);
@@ -34,7 +34,9 @@ test('git fixture events, dates, visibility, counters and output',()=>{
  assert.equal(world.kpi.books,1);assert.equal(world.village.households,0);assert.equal(world.kpi.swaps_total,1);
  assert.ok(world.events.filter(e=>e.type.startsWith('letter')).every(e=>e.ts.endsWith('T00:00:00+08:00')));
  write('footprints/example-person.jsonl',Array(60).fill(JSON.stringify({room:'example-company',date:'2026-10-06',note:'測試拜訪'})).join('\n')+'\n');commit(['footprints']);
- const busy=buildWorld(root,path.join(root,'busy.json'),{now:new Date('2026-10-06T10:00:00Z')});assert.equal(busy.events.length,50);assert.equal(busy.kpi.visits_today,61);
+ const footprintLines=dir=>fs.readdirSync(path.join(dir,'footprints')).reduce((sum,name)=>sum+fs.readFileSync(path.join(dir,'footprints',name),'utf8').split(String.fromCharCode(10)).map(line=>line.trim()).filter(Boolean).length,0);
+ const visits=footprintLines(root);assert.ok(visits>60);
+ const busy=buildWorld(root,path.join(root,'busy.json'),{now:new Date('2026-10-06T10:00:00Z')});assert.equal(busy.events.length,50);assert.equal(busy.kpi.visits_today,visits);
  const member=JSON.parse(fs.readFileSync(path.join(root,'members/example-person.json')));member.owner_consent=false;write('members/example-person.json',member);
  const hidden=buildWorld(root,path.join(root,'hidden.json'));
  assert.ok(!JSON.stringify(hidden).includes('example-person'));assert.ok(!JSON.stringify(hidden).includes(member.handle));

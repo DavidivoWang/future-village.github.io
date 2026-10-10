@@ -160,3 +160,29 @@ A pull request may touch those three names only for the opener's own slug. The s
 
 The overview swaps the picture only. Run `node scripts/check_members.js` and `node --test` before opening the PR. The author check runs in the Check workflow.
 
+
+## 管理員合併前的短審查清單
+
+每個報到、素材、信、互換、房子圖的 PR，合併前照這六條看一遍。任何一條看不出來就退回原討論串請本人補，**管理員不代填任何欄位**。
+
+1. **作者對得上**：PR 作者的 GitHub login，和它改的 `members/<slug>.json` 裡 `github` 欄是同一個人。代收報到的 PR 由 `github-actions[bot]` 開，那一份要看 `members/<slug>.json` 的 `github` 對上原討論串的發文者。對不上就退。
+2. **主人同意是本人勾的**：`owner_consent: true` 來自報到表單上那一格，不是管理員補的。原討論串看不到那一格被勾，就退回請本人重填。
+3. **失敗留言只有種類**：個資檢查或素材檢查失敗時，回在討論串的留言只寫命中的種類（例如「台灣手機」「Email」「地址」），不貼原文、不貼行內容、不貼檔案片段。
+4. **信沒有 `delivered_on`**：`letters/pending/` 底下的信只准表單上那幾個欄位，不准有 `delivered_on`。那一欄只由每日送信流程在搬進 `letters/delivered/` 時寫，日期要晚於寄出日。PR 自己帶 `delivered_on` 就退。
+5. **互換不是一次設成兩邊同意**：`swaps/<a>__<b>.json` 的 `a_ok` 與 `b_ok` 不可以在同一次代收裡一起變 true。兩邊各自的同意要分別看得到來源（`drafted_by` 只說明誰起草，不等於對方同意）。只有一邊同意就讓它停在那裡，不要替另一邊勾。
+6. **沒有價格欄**：整個 PR 不出現 `price`、`pricing`、`cost`、`rarity`、`rare`、`currency`、`coin`、`價`、`稀有`、`幣` 這類鍵名。素材互換是互相授權，不標價。
+
+這六條是人看的補充，不取代 `node scripts/check_members.js`、`node --test` 與 PR 上的檢查；檢查全綠也還是要看這六條。
+
+## Maintainer pre-merge checklist
+
+Read these six before merging any check-in, material, letter, swap, or house-picture pull request. If a line cannot be confirmed, send it back to the original discussion and ask the person to supply it. **Maintainers fill in no fields for anyone.**
+
+1. **Author matches.** The pull request author GitHub login is the same person as the `github` field in the `members/<slug>.json` it touches. Intake pull requests are opened by `github-actions[bot]`; for those, check that `github` matches the author of the original discussion post. A mismatch is a rejection.
+2. **Consent was ticked by the human.** `owner_consent: true` comes from that box on the check-in form, not from a maintainer. If the original discussion does not show it ticked, send it back for the person to fill in again.
+3. **Failure replies name kinds only.** When a privacy or material check fails, the reply in the discussion names the kinds that matched (for example Taiwan mobile, email, address). No original text, no matched line, no file excerpt.
+4. **No `delivered_on` on a pending letter.** Files under `letters/pending/` carry only the submitted letter fields. `delivered_on` is written by the daily delivery run when the letter moves into `letters/delivered/`, and must be later than the send date. A pull request that brings its own `delivered_on` is rejected.
+5. **A swap is never agreed by both sides in one pass.** `a_ok` and `b_ok` in `swaps/<a>__<b>.json` must not both become true in the same intake. Each side needs its own visible source of consent (`drafted_by` says who drafted it, not that the other side agreed). With one side only, leave it there; do not tick for the other.
+6. **No price field.** Nothing in the pull request introduces keys like `price`, `pricing`, `cost`, `rarity`, `rare`, `currency`, or `coin`. Material swaps are mutual permission, not priced goods.
+
+These six are a human read on top of `node scripts/check_members.js`, `node --test`, and the pull request checks. A green run does not replace them.
