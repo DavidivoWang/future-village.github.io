@@ -5,8 +5,8 @@ function gate(user,prs,event,now=Date.now()) {
  if(!Number.isFinite(created)||now-created<7*86400000)return {ok:false,message:'帳號建立未滿 7 天或建立時間無法確認，請滿 7 天後再報到；尚未開 PR。'};
  const login=event.discussion?.user?.login;
  if(typeof login!=='string')return {ok:false,message:'無法確認報到帳號。'};
- const branch='intake/'+login.toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-+|-+$/g,'').slice(0,39);
- const intake=prs.filter(p=>p.headRefName.startsWith('intake/'));
+ const branch=(event.discussion?.category?.slug==='letters'?'letter/':'intake/')+login.toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-+|-+$/g,'').slice(0,39);
+ const intake=prs.filter(p=>/^(intake|letter|swap)\//.test(p.headRefName));
  if(intake.length>50&&!intake.some(p=>p.headRefName===branch))return {ok:false,message:'排隊中：開著的 intake PR 超過 50 條，暫不開新的 PR。'};
  return {ok:true,message:'可以代收'};
 }
