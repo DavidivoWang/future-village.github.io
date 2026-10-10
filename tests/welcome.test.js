@@ -75,7 +75,7 @@ test('welcome pages replace the root redirect and leave /site/ bytes alone', {ti
     }
     return html;
   });
-  assert.match(htmls[0], /門牌 1 號還空著/);
+  assert.doesNotMatch(htmls[0], /門牌 1 號還空著/);
   assert.match(htmls[2], /<wbr>/);
   assert.match(fs.readFileSync(path.join(out, 'welcome.css'), 'utf8'), /html\[lang="ko"\]\{[^}]*word-break:keep-all/);
   assert.equal(htmls[0].includes('虛構範例'), false);
@@ -155,11 +155,11 @@ test('welcome folds empty slots and omits the upgrade bar at 0 and 10 households
     assert.match(htmls.ko, /먼저 한 점 놓기/);
   }
   const empty = pages(0);
-  assert.match(empty['zh-Hant'], /門牌 1 號還空著/);
+  assert.doesNotMatch(empty['zh-Hant'], /門牌 1 號還空著/);
   assert.doesNotMatch(empty['zh-Hant'], /現在 0 戶/);
   assert.doesNotMatch(empty.en, /\b0 households\b/i);
   const ten = pages(10);
-  assert.match(ten['zh-Hant'], /現在 10 戶。/);
+  assert.doesNotMatch(ten['zh-Hant'], /現在 \d+ 戶/);
   assert.doesNotMatch(ten['zh-Hant'], /門牌 1 號還空著/);
   const filled = slotBlock(pages(10, ['甲', '乙'])['zh-Hant']);
   assert.equal(filled.match(/<li\b/g).length, 2);

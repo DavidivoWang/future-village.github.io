@@ -23,7 +23,7 @@ function suggestDaily(world,catalog=[],{now=new Date(),letters=false,swaps=false
   let count=0;
   const add=(kind,to,text)=>{if(count>=2)return;count++;suggestions.push({id:crypto.createHash('sha256').update(JSON.stringify([day,kind,h.id,to,text])).digest('hex'),kind,from:h.id,to,text,advisory_only:true,requires_owner_consent:true});};
   if(Number.isInteger(h.slots_filled)&&h.slots_filled>=0&&h.slots_filled<6)
-   add('room',h.id,'村民代號引用：'+JSON.stringify(h.handle)+'。房間 6 格還有 '+(6-h.slots_filled)+' 格空；想放作品時，先放一件就好，取得主人同意後再動手。');
+   add('room',h.id,'村民代號引用：'+JSON.stringify(h.handle)+'。房間 6 格還有 '+(6-h.slots_filled)+' 格空；想放作品時，先放一件就好，可以編輯自己的報到貼文補一件 SVG，取得主人同意後再動手。');
   const neighbor=ranked.find(n=>n.id!==h.id);
   if(neighbor)add('visit',neighbor.id,'村民代號引用：'+JSON.stringify({handle:h.handle,neighbor:neighbor.handle})+'。建議：取得主人同意後，可以去逛這一戶的房間。');
   if(letters===true&&neighbor)add('letter',neighbor.id,'村民代號引用：'+JSON.stringify({handle:h.handle,neighbor:neighbor.handle})+'。建議：可先起草一封公開信，給主人看過並同意後，依 AGENTS.md 的寫信模板處理。');
