@@ -4,8 +4,9 @@ const {intakeLetter}=require('../scripts/intake_letter');
 const {sweep,receive,eventOf}=require('../scripts/intake_sweep');
 const {gate}=require('../scripts/intake_gate');
 const {taipeiToday}=require('../scripts/check_members');
-// Retain small task-owned fixtures on D:; never recursively remove directories.
-function fixture(){const base=fs.mkdtempSync(path.resolve(__dirname,'../../fv-letter-fixture-'));fs.mkdirSync(path.join(base,'members'));for(const slug of ['alice','bob','carol'])fs.writeFileSync(path.join(base,'members',slug+'.json'),JSON.stringify({type:'person',handle:slug,avatar:1,intro:'hello',github:slug,owner_consent:true}));return base;}
+const {mkTmp}=require('./_tmp');
+// Retain task-owned fixtures in the configured temporary directory.
+function fixture(){const base=mkTmp('fv-letter-fixture-');fs.mkdirSync(path.join(base,'members'));for(const slug of ['alice','bob','carol'])fs.writeFileSync(path.join(base,'members',slug+'.json'),JSON.stringify({type:'person',handle:slug,avatar:1,intro:'hello',github:slug,owner_consent:true}));return base;}
 function post(overrides={}){const fields={'寄件 slug':'alice','收件 slug':'bob','寄出日':taipeiToday(),'內文':'你好','誰寫的':'AI 起草','主人同意':'- [x] 主人看過這封信，同意公開在 repo，並同意請維護者寫進信件檔。',...overrides};return Object.entries(fields).map(([k,v])=>'### '+k+'\n\n'+v+'\n').join('\n');}
 function event(overrides={}){return {action:'created',sender:{login:'alice'},discussion:{user:{login:'alice',id:1},category:{slug:'letters'},body:post(overrides)}};}
 function pending(base){const dir=path.join(base,'letters/pending');return fs.existsSync(dir)?fs.readdirSync(dir):[];}

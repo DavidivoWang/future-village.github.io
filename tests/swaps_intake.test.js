@@ -3,10 +3,11 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {intakeSwap,NO_MATERIAL}=require('../scripts/intake_swap');
 const {sweep,receive}=require('../scripts/intake_sweep');
 const {taipeiToday}=require('../scripts/check_members');
-// Retain small task-owned fixtures on D:; never recursively remove directories.
+const {mkTmp}=require('./_tmp');
+// Retain task-owned fixtures in the configured temporary directory.
 function member(base,slug,github=slug,extra={}){fs.mkdirSync(path.join(base,'members'),{recursive:true});fs.writeFileSync(path.join(base,'members',slug+'.json'),JSON.stringify({type:'person',handle:slug,avatar:1,intro:'hello',github,owner_consent:true,...extra}));}
 function material(base,slug,id='item-1',meta={}){const dir=path.join(base,'materials',slug);fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,id+'.svg'),'<svg xmlns="http://www.w3.org/2000/svg"><rect width="4" height="4"/></svg>');fs.writeFileSync(path.join(dir,id+'.json'),JSON.stringify({title:'t',source:'s',rights_ok:true,desensitized_ok:true,made_by:'human',...meta}));}
-function fixture(){const base=fs.mkdtempSync(path.resolve(__dirname,'../../fv-swap-fixture-'));for(const slug of ['alice','bob','carol']){member(base,slug);material(base,slug);}return base;}
+function fixture(missing){const base=mkTmp('fv-swap-fixture-');for(const slug of ['alice','bob','carol']){member(base,slug);if(slug!==missing)material(base,slug);}return base;}
 function post(overrides={}){const fields={'我的 slug':'alice','對方 slug':'bob','我的素材 id':'alice/item-1','對方的素材 id':'bob/item-1','提案日':taipeiToday(),'誰在提案':'AI 提案','主人同意':'- [x] 主人同意提出這筆互換。我沒有代替對方勾同意。',...overrides};return Object.entries(fields).map(([k,v])=>'### '+k+'\n\n'+v+'\n').join('\n');}
 function event(overrides={}){return {action:'created',sender:{login:'alice'},discussion:{user:{login:'alice',id:1},category:{slug:'swaps'},body:post(overrides)}};}
 function listSwaps(base){const dir=path.join(base,'swaps');return fs.existsSync(dir)?fs.readdirSync(dir):[];}
@@ -55,15 +56,14 @@ test('對方是範例戶就退',()=>{
 });
 
 test('自己沒有素材就退，留言是固定句',()=>{
- const base=fixture();
- fs.rmSync(path.join(base,'materials/alice/item-1.svg'));
+ const base=fixture('alice');
  const r=rejected({},NO_MATERIAL,base);
  assert.deepEqual(r.errors,[NO_MATERIAL]);
  assert.equal('失敗｜'+r.errors.join('\n失敗｜'),'失敗｜缺少可互換的素材｜請編輯自己的報到貼文，補一件 SVG。不要另開互換。');
 });
 
 test('對方沒有素材、權利或去敏不是 true 都走同一句',()=>{
- const noTheirs=fixture();fs.rmSync(path.join(noTheirs,'materials/bob/item-1.json'));
+ const noTheirs=fixture('bob');
  assert.deepEqual(rejected({},NO_MATERIAL,noTheirs).errors,[NO_MATERIAL]);
  for(const flag of ['rights_ok','desensitized_ok']){
   const base=fixture();material(base,'alice','item-1',{[flag]:false});
