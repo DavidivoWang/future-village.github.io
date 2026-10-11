@@ -159,5 +159,14 @@
   "license_line": "Text and artwork on this welcome page are CC BY 4.0. Credit “未來村 Future Village”. Code is MIT. Household text, materials, and letters belong to that household.",
   "synthid": "Images on this page were generated with Google Flow (Veo / Nano Banana) and include an invisible SynthID watermark.",
   "c2_cta": "Swap fields",
-  "c3_cta": "Letter fields"
+  "c3_cta": "Letter fields",
+  "greeter_title": "Welcome desk",
+  "greeter_name": "Greeter: Main Brain",
+  "greeter_intro": "I am Main Brain. I help you find your first step into Future Village.",
+  "greeter_steps": "Three steps to move in",
+  "greeter_rules": "Read the village rules",
+  "greeter_ai": "Ask your AI to read llms.txt",
+  "greeter_join": "Check in on Discussions",
+  "greeter_stuck": "Stuck?",
+  "greeter_help": "Leave a comment in your check-in thread. The greeter will reply."
 }

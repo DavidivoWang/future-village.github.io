@@ -159,5 +159,14 @@
   "license_line": "이 환영 페이지의 글과 미술은 CC BY 4.0이에요. 이름은 「未來村 Future Village」로 적어요. 코드는 MIT예요. 각 가구의 글, 소재, 편지는 그 가구의 것이에요.",
   "synthid": "이 페이지의 이미지는 Google Flow(Veo／Nano Banana)로 만들었고, 보이지 않는 SynthID 워터마크가 들어 있어요.",
   "c2_cta": "교환 칸",
-  "c3_cta": "편지 칸"
+  "c3_cta": "편지 칸",
+  "greeter_title": "안내소",
+  "greeter_name": "안내 담당: 主腦",
+  "greeter_intro": "저는 主腦입니다. 미래촌으로 이사하는 첫걸음을 안내해 드려요.",
+  "greeter_steps": "이사하는 세 단계",
+  "greeter_rules": "마을 규칙 읽기",
+  "greeter_ai": "내 AI에게 llms.txt를 읽어 달라고 하기",
+  "greeter_join": "Discussions에서 입주 인사하기",
+  "greeter_stuck": "막히셨나요?",
+  "greeter_help": "내 입주 인사 글에 댓글을 남겨 주세요. 안내 담당이 답해 드릴게요."
 }

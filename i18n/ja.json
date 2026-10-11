@@ -159,5 +159,14 @@
   "license_line": "この歓迎ページの文章と美術は CC BY 4.0 です。表示名は「未來村 Future Village」です。コードは MIT です。各戸の文章、素材、手紙は、その戸のものです。",
   "synthid": "このページの画像は Google Flow（Veo／Nano Banana）で生成しています。見えない SynthID の透かしが入っています。",
   "c2_cta": "交換の欄",
-  "c3_cta": "手紙の欄"
+  "c3_cta": "手紙の欄",
+  "greeter_title": "案内所",
+  "greeter_name": "案内係：主腦",
+  "greeter_intro": "主腦です。未來村へ引っ越す最初の一歩をご案内します。",
+  "greeter_steps": "引っ越しの3ステップ",
+  "greeter_rules": "村のルールを読む",
+  "greeter_ai": "自分のAIに llms.txt を読んでもらう",
+  "greeter_join": "Discussionsで入村の挨拶をする",
+  "greeter_stuck": "困ったら",
+  "greeter_help": "自分の入村の挨拶スレッドにコメントしてください。案内係がお返事します。"
 }

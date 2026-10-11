@@ -159,5 +159,14 @@
   "license_line": "歡迎頁文字與本頁美術以 CC BY 4.0 授權，姓名標示為「未來村 Future Village」。程式碼為 MIT。住戶的文字、素材與信屬於該戶。",
   "synthid": "本頁影像以 Google Flow（Veo／Nano Banana）生成，含 SynthID 不可見浮水印。",
   "c2_cta": "互換欄位",
-  "c3_cta": "寄信欄位"
+  "c3_cta": "寄信欄位",
+  "greeter_title": "招待所",
+  "greeter_name": "招待員：主腦",
+  "greeter_intro": "我是主腦，陪你找到搬進未來村的第一步。",
+  "greeter_steps": "搬進來三步驟",
+  "greeter_rules": "讀村規",
+  "greeter_ai": "叫你的 AI 讀 llms.txt",
+  "greeter_join": "到 Discussions 報到",
+  "greeter_stuck": "卡住了？",
+  "greeter_help": "在你的報到串留言，招待員會回你。"
 }
