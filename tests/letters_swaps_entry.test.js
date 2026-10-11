@@ -47,12 +47,40 @@ test('歡迎頁與房間頁的連結指到表單檔和 check-in', () => {
   assert.equal(/categories\/letters|categories\/swaps/.test(app), false);
 });
 
-test('代收仍只收 check-in', () => {
+test('代收處理 check-in、letters、swaps 三種分類', () => {
   const intake = read('.github/workflows/intake.yml');
   assert.match(intake, /category\.slug == 'check-in'/);
-  assert.equal(/letters|swaps/.test(intake), false);
-  assert.match(read('scripts/intake_sweep.js'), /slug!=='check-in'/);
+  assert.match(read('scripts/intake_sweep.js'), /\['check-in','letters','swaps'\]\.includes\(d\.category\?\.slug\)/);
   assert.match(read('scripts/intake_from_event.js'), /slug!=='check-in'/);
+  assert.match(read('scripts/intake_letter.js'), /slug!=='letters'/);
+  assert.match(read('scripts/intake_swap.js'), /slug!=='swaps'/);
+});
+
+test('swaps 分類不存在時代收零動作，報到與寄信路徑仍不碰 swaps', () => {
+  const {intakeSwap} = require('../scripts/intake_swap');
+  const dir = require('./_fixture').fixture('entry-noswaps-');
+  const before = fs.readdirSync(path.join(dir, 'swaps'));
+  const body = '### 我的 slug\n\nexample-person\n\n### 對方 slug\n\nexample-company\n';
+  const base = {action: 'created', sender: {login: 'example-person'}, discussion: {user: {login: 'example-person'}, body}};
+  assert.deepEqual(intakeSwap(base, dir), {ok: true, skipped: true});
+  const other = {...base, discussion: {...base.discussion, category: {slug: 'check-in'}}};
+  assert.deepEqual(intakeSwap(other, dir), {ok: true, skipped: true});
+  assert.deepEqual(fs.readdirSync(path.join(dir, 'swaps')), before);
+  for (const rel of ['.github/workflows/intake.yml', 'scripts/intake_from_event.js', 'scripts/intake_letter.js']) {
+    assert.equal(/swaps/.test(read(rel)), false, rel);
+  }
+});
+
+test('letters 分類不存在時寄信路徑零動作', () => {
+  const dir = require('./_fixture').fixture('entry-noletters-');
+  const before = fs.readdirSync(path.join(dir, 'letters/pending'));
+  const {intakeLetter} = require('../scripts/intake_letter');
+  const body = '### 寄件 slug\n\nexample-person\n\n### 收件 slug\n\nexample-company\n';
+  const base = {action: 'created', sender: {login: 'example-person'}, discussion: {user: {login: 'example-person'}, body}};
+  assert.deepEqual(intakeLetter(base, dir), {ok: true, skipped: true});
+  const other = {...base, discussion: {...base.discussion, category: {slug: 'check-in'}}};
+  assert.deepEqual(intakeLetter(other, dir), {ok: true, skipped: true});
+  assert.deepEqual(fs.readdirSync(path.join(dir, 'letters/pending')), before);
 });
 
 test('表單有主人同意，且沒有把兩邊 ok 一次勾完的欄', () => {

@@ -13,7 +13,7 @@ function eventOf(d){return {action:'edited',sender:{login:d.editor?.login||d.aut
 async function sweep(listPage,hasReceipt,receive,{limit=25}={}){
  let cursor=null;const results=[];
  do {const page=await listPage(cursor);
-  for(const d of page.nodes){if(d.category?.slug!=='check-in'||!d.author?.login)continue;
+  for(const d of page.nodes){if(!['check-in','letters','swaps'].includes(d.category?.slug)||!d.author?.login)continue;
    if(d.lastEditedAt&&(!d.editor?.login||d.editor.login.toLowerCase()!==d.author.login.toLowerCase())){results.push({number:d.number,skipped:'non-author edit'});continue;}
    const mark='<!-- future-village-intake:'+signature(d)+' -->';
    if(await hasReceipt(d,mark))continue;
@@ -23,7 +23,10 @@ async function sweep(listPage,hasReceipt,receive,{limit=25}={}){
   cursor=page.pageInfo.hasNextPage?page.pageInfo.endCursor:null;
  }while(cursor);return results;
 }
-function receive(d,mark,prs){
+function receive(d,mark,prs,io={}){
+ const slug=d.category?.slug,scoped=['letters','swaps'].includes(slug),SCRIPT={'check-in':'scripts/intake_from_event.js',letters:'scripts/intake_letter.js',swaps:'scripts/intake_swap.js'}[slug],SCOPE={letters:/^letters\/pending\/[a-z0-9-]+__[a-z0-9-]+__\d{4}-\d{2}-\d{2}\.json$/,swaps:/^swaps\/[a-z0-9-]+__[a-z0-9-]+\.json$/}[slug],TITLE={'check-in':'Check-in: ',letters:'Letter: ',swaps:'Swap: '}[slug],MESSAGE={'check-in':'Receive check-in',letters:'Receive letter',swaps:'Receive swap'}[slug];
+ if(!['check-in','letters','swaps'].includes(slug))return {ok:true,skipped:true};
+ const run=io.run||moduleRun,gh=io.gh||moduleGh,graphql=io.graphql||moduleGraphql;
  const e=eventOf(d),login=d.author.login;
  const comment=body=>graphql('mutation($id:ID!,$body:String!){addDiscussionComment(input:{discussionId:$id,body:$body}){comment{id}}}',{id:d.id,body});
  const user=JSON.parse(gh(['api','users/'+login])),g=gate(user,prs,e);
@@ -34,34 +37,37 @@ function receive(d,mark,prs){
  try {
  // A new worktree for every post, always based on the latest main, never old intake code.
  run('git',['fetch','origin','main']);
- const base=fs.mkdtempSync(path.join(process.env.RUNNER_TEMP||os.tmpdir(),'village-intake-'));
+ const base=fs.mkdtempSync(path.join(io.tempRoot||process.env.RUNNER_TEMP||os.tmpdir(),'village-intake-'));
  run('git',['worktree','add','--detach',base,'origin/main']);
  const eventFile=path.join(base,'intake-event.json');fs.writeFileSync(eventFile,JSON.stringify(e));
- const received=cp.spawnSync(process.execPath,['scripts/intake_from_event.js',eventFile],{cwd:base,encoding:'utf8'});
+ const received=(io.spawnSync||cp.spawnSync)(process.execPath,[SCRIPT,eventFile],{cwd:base,encoding:'utf8'});
  if(![0,1].includes(received.status))throw new Error('Intake execution failed');
  const result=JSON.parse(received.stdout);
  if(!result.ok){comment('失敗｜'+result.errors.join('\n失敗｜')+'\n'+mark);return {rejected:true};}
  run(process.execPath,['scripts/check_members.js'],base);
  const branch=result.branch;
  const remote=run('git',['ls-remote','origin','refs/heads/'+branch]).split(/\s/)[0];
- run('git',['add','members','rooms','materials'],base);
+ if(scoped&&(result.files.length!==1||!SCOPE.test(result.files[0])))throw new Error('Intake path scope');
+ run('git',scoped?['add','--',...result.files]:['add','members','rooms','materials'],base);
  const changed=run('git',['diff','--cached','--name-only'],base);
+ if(scoped&&changed&&changed!==result.files[0])throw new Error('Staged intake scope');
  if(changed){
-  run('git',['-c','user.name=github-actions[bot]','-c','user.email=41898282+github-actions[bot]@users.noreply.github.com','commit','-m','Receive check-in'],base);
+  run('git',['-c','user.name=github-actions[bot]','-c','user.email=41898282+github-actions[bot]@users.noreply.github.com','commit','-m',MESSAGE],base);
   run('git',['push','--force-with-lease=refs/heads/'+branch+':'+remote,'origin','HEAD:refs/heads/'+branch],base);
   const bodyFile=path.join(base,'intake-pr-body.txt');fs.writeFileSync(bodyFile,'Automatically received; maintainer review required.\nDetected kinds: '+(result.kinds||[]).join(', '));
   let pr=gh(['pr','list','--head',branch,'--base','main','--state','open','--json','url','--jq','.[0].url // empty']);
-  if(!pr)pr=gh(['pr','create','--base','main','--head',branch,'--title','Check-in: '+result.slug,'--body-file',bodyFile]);
+  if(!pr)pr=gh(['pr','create','--base','main','--head',branch,'--title',TITLE+result.slug,'--body-file',bodyFile]);
   else gh(['pr','edit',pr,'--body-file',bodyFile]);
   if(!prs.some(p=>p.headRefName===branch))prs.push({headRefName:branch});
   comment('PR: '+pr+'\n'+result.warnings.map(w=>'失敗｜'+w).join('\n')+'\n'+mark);
- }else comment('Check-in already matches main.\n'+mark);
+ }else comment('Intake already matches main.\n'+mark);
  return {ok:true};
  }catch{
   comment('失敗｜代收處理或資料閘失敗，請管理員檢查；同一貼文版本只試一次。編輯貼文後才重新代收。\n'+mark);
   return {rejected:true,internal:true};
  }
 }
+const moduleRun=run,moduleGh=gh,moduleGraphql=graphql;
 async function main(){
  const [owner,name]=process.env.GITHUB_REPOSITORY.split('/');
  const prs=JSON.parse(gh(['pr','list','--base','main','--state','open','--limit','1000','--json','headRefName']));

@@ -22,8 +22,8 @@ function tinyWebp(w,h){
  const head=Buffer.alloc(8);head.write('RIFF',0,'ascii');head.writeUInt32LE(body.length,4);
  return Buffer.concat([head,body]);
 }
-function writeHouse(dir,name,buf,made){
- const folder=path.join(dir,'rooms/example-person');
+function writeHouse(dir,name,buf,made,id='example-person'){
+ const folder=path.join(dir,'rooms',id);
  fs.writeFileSync(path.join(folder,name),buf);
  fs.writeFileSync(path.join(folder,'house.json'),JSON.stringify(meta(made)));
 }
@@ -157,33 +157,33 @@ test('export whitelist admits only the household house image and leaves it out o
  assert.equal(scan(nine,pack(9).map(x=>x[0])).hits.some(h=>h.includes('3MB')),true);
 });
 test('buildWorld emits house_art only for a picture that passed',()=>{
- const dir=require('./_fixture').fixture('house-world-');
+ const dir=require('./_public_fixture').seed(mkTmp('house-world-'));
  const git=(...argv)=>{const r=cp.spawnSync('git',['-C',dir,...argv],{encoding:'utf8',env:{...process.env,GIT_AUTHOR_DATE:'2026-10-06T12:00:00+08:00',GIT_COMMITTER_DATE:'2026-10-06T12:00:00+08:00'}});assert.equal(r.status,0,r.stderr);};
  git('init');git('add','members','rooms','materials','footprints','letters','swaps');
  git('-c','user.name=Fixture','-c','user.email=283511868+zaxardery8011-design@users.noreply.github.com','commit','-m','Fixture');
  const bare=buildWorld(dir,null,{now:new Date('2026-10-08T10:00:00Z')});
- assert.equal(bare.households.find(h=>h.id==='example-person').house_art,undefined);
- writeHouse(dir,'house.png',tinyPng(32,32),'ai_assisted');
+ assert.equal(bare.households.find(h=>h.id==='fixture-person').house_art,undefined);
+ writeHouse(dir,'house.png',tinyPng(32,32),'ai_assisted','fixture-person');
  const world=buildWorld(dir,null,{now:new Date('2026-10-08T10:00:00Z')});
- assert.equal(world.households.find(h=>h.id==='example-person').house_art,'rooms/example-person/house.png');
- assert.equal(world.households.find(h=>h.id==='example-company').house_art,undefined);
- fs.writeFileSync(path.join(dir,'rooms/example-person/house.json'),JSON.stringify(meta('nope')));
+ assert.equal(world.households.find(h=>h.id==='fixture-person').house_art,'rooms/fixture-person/house.png');
+ assert.equal(world.households.find(h=>h.id==='fixture-company').house_art,undefined);
+ fs.writeFileSync(path.join(dir,'rooms/fixture-person/house.json'),JSON.stringify(meta('nope')));
  const broken=buildWorld(dir,null,{now:new Date('2026-10-08T10:00:00Z')});
- assert.equal(broken.households.find(h=>h.id==='example-person').house_art,undefined);
+ assert.equal(broken.households.find(h=>h.id==='fixture-person').house_art,undefined);
 });
 test('buildSite copies the passing picture and house.json, and refuses a broken pair',()=>{
  const dir=mkTmp('house-site-');
- fs.cpSync(root,dir,{recursive:true,filter:src=>!src.includes(path.sep+'.git')&&!src.includes(path.sep+'_site')});
- fs.writeFileSync(path.join(dir,'rooms/example-person/house.webp'),tinyWebp(24,24));
- fs.writeFileSync(path.join(dir,'rooms/example-person/house.json'),JSON.stringify(meta('ai_marked')));
- fs.writeFileSync(path.join(dir,'rooms/example-person/note.txt'),'leave me');
+ require('./_public_fixture').copyRepo(dir);
+ fs.writeFileSync(path.join(dir,'rooms/fixture-person/house.webp'),tinyWebp(24,24));
+ fs.writeFileSync(path.join(dir,'rooms/fixture-person/house.json'),JSON.stringify(meta('ai_marked')));
+ fs.writeFileSync(path.join(dir,'rooms/fixture-person/note.txt'),'leave me');
  const out=path.join(mkTmp('house-out-'),'site');
  buildSite(dir,out);
- assert.equal(fs.existsSync(path.join(out,'rooms/example-person/house.webp')),true);
- assert.equal(fs.existsSync(path.join(out,'rooms/example-person/house.json')),true);
- assert.equal(fs.existsSync(path.join(out,'rooms/example-person/room.json')),true);
- assert.equal(fs.existsSync(path.join(out,'rooms/example-person/note.txt')),false);
- fs.writeFileSync(path.join(dir,'rooms/example-person/house.png'),tinyPng(8,8));
+ assert.equal(fs.existsSync(path.join(out,'rooms/fixture-person/house.webp')),true);
+ assert.equal(fs.existsSync(path.join(out,'rooms/fixture-person/house.json')),true);
+ assert.equal(fs.existsSync(path.join(out,'rooms/fixture-person/room.json')),true);
+ assert.equal(fs.existsSync(path.join(out,'rooms/fixture-person/note.txt')),false);
+ fs.writeFileSync(path.join(dir,'rooms/fixture-person/house.png'),tinyPng(8,8));
  assert.throws(()=>buildSite(dir,path.join(mkTmp('house-out2-'),'site')),/請先修正 check_members\.js 回報的失敗/);
 });
 test('village keeps the preset loader and falls back through applyHouseLoadError',async()=>{
