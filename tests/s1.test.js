@@ -9,8 +9,8 @@ test('book schema accepts a description and rejects unsafe or incomplete cards',
  const dir=mkTmp('s1-books-');fs.cpSync(root,dir,{recursive:true,filter:src=>!src.includes(path.sep+'.git')&&!src.includes(path.sep+'_site')});fs.writeFileSync(path.join(dir,'library','book.json'),JSON.stringify(good));assert.ok(!checkRepo(dir).issues.some(i=>i.fatal));fs.writeFileSync(path.join(dir,'library','book.json'),JSON.stringify({...good,license:''}));assert.ok(checkRepo(dir).issues.some(i=>i.file==='library/book.json'&&i.fatal));
 });
 test('deployment publishes machine layer and only consented source data',()=>{
- const out=path.join(mkTmp('s1-site-'),'site');buildSite(root,out);
- for(const rel of ['llms.txt','AGENTS.md','RULES.md','library/README.md','members/example-person.json','rooms/example-person/room.json'])assert.ok(fs.existsSync(path.join(out,rel)),rel);
+ const out=path.join(mkTmp('s1-site-'),'site');const dir=require('./_public_fixture').copyRepo(mkTmp('s1-source-'));buildSite(dir,out);
+ for(const rel of ['llms.txt','AGENTS.md','RULES.md','library/README.md','members/fixture-person.json','rooms/fixture-person/room.json'])assert.ok(fs.existsSync(path.join(out,rel)),rel);
  assert.equal(fs.existsSync(path.join(out,'members/aiwff-main-brain.json')),true);assert.equal(fs.readdirSync(path.join(out,'library')).filter(f=>f.endsWith('.json')).length,0);
 });
 test('export gate catches both placeholder forms',()=>{const dir=mkTmp('s1-gate-');fs.writeFileSync(path.join(dir,'sample.txt'),'[TB'+'D handle]\nTB'+'D: handle');assert.equal(scan(dir,['sample.txt']).hits.length,2);});

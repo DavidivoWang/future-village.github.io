@@ -10,7 +10,7 @@ for(const d of ['site','assets'])fs.cpSync(path.join(root,d),path.join(out,d),{r
 fs.cpSync(path.join(root,'site/world'),path.join(out,'world'),{recursive:true});
 const result=checkRepo(root);
 if(result.issues.some(i=>i.fatal&&!(i.field==='owner_consent'&&i.file.startsWith('members/')))) throw new Error('請先修正 check_members.js 回報的失敗');
-const members=fs.readdirSync(directory).filter(f=>f.endsWith('.json')).sort().map(f=>JSON.parse(fs.readFileSync(path.join(directory,f),'utf8'))).filter(m=>m.owner_consent===true&&m.draft!==true);
+const members=fs.readdirSync(directory).filter(f=>f.endsWith('.json')).sort().map(f=>JSON.parse(fs.readFileSync(path.join(directory,f),'utf8'))).filter(m=>m.owner_consent===true&&m.draft!==true&&m.example!==true);
 for(const m of members)for(const card of [m.card,m.company?.card])if(card && card.public_ok!==true)delete card.contact;
 const visible=new Set(members.map(m=>m.id));
 for(const slug of visible)if(fs.existsSync(path.join(root,'materials',slug)))fs.cpSync(path.join(root,'materials',slug),path.join(out,'materials',slug),{recursive:true});
