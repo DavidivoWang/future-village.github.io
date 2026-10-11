@@ -185,7 +185,9 @@ test('room page collapses empty slots to one guide and keeps six stored slots', 
   assert.deepEqual(roomCells(mixed).map((cell) => cell.slot.type), ['own', 'swap']);
   assert.equal(JSON.stringify(roomCells(mixed)).includes('空格'), false);
   assert.doesNotMatch(src, /目前入住/);
-  for (const id of ['answeraisolo', 'davidivowang', 'example-person', 'example-company', 'aiwff-main-brain']) {
+  const roomIds = fs.readdirSync(path.join(root, 'rooms'), {withFileTypes: true}).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  assert.ok(roomIds.length > 0);
+  for (const id of roomIds) {
     assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'rooms', id, 'room.json'), 'utf8')).slots.length, 6);
   }
 });

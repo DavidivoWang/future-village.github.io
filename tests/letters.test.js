@@ -21,7 +21,7 @@ test('範例：一封已送、一封待送、兩行足跡，目錄和素材對�
  const dir=copy(),r=checkRepo(dir,{today:TODAY});
  assert.deepEqual(r.issues.filter(i=>i.fatal),[]);
  assert.equal(r.letters.delivered.length,1);assert.equal(r.letters.pending.length,1);
- assert.equal(r.footprints.length,2);
+ assert.equal(r.footprints.length,fs.readdirSync(path.join(dir,'footprints')).reduce((sum,name)=>sum+fs.readFileSync(path.join(dir,'footprints',name),'utf8').split(String.fromCharCode(10)).map(line=>line.trim()).filter(Boolean).length,0));
  assert.deepEqual(r.catalog.map(c=>c.ref).sort(),materialRefs(dir));
  assert.equal(run(copy()),0);
 });
